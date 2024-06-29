@@ -1,22 +1,25 @@
 services:
   wso2greg:
     build: ./wso2greg
-    image: jhmjesus/wso2greg:1.0
+    image: jhmjesus/wso2greg:1.1.1
     hostname: "greg.joy.net"
     deploy:
       mode: replicated
       replicas: 1
     links:
-      - "mysql:wso2carbon-db"
+      - "oracle:wso2carbon-db"
       - "openldap:ldap"
     depends_on: 
-      - mysql
+#      - mysql
+#      - postgres
+      - oracle
       - openldap
 #    ports:
 #      - '9443:9443'
     environment:
-      - WSO2_DB_DRIVER=com.mysql.cj.jdbc.Driver
-      - WSO2_DB_URL=jdbc:mysql://wso2carbon-db:3306/WSO2CARBON_DB
+#      - WSO2_DB_DRIVER=com.mysql.cj.jdbc.Driver
+#      - WSO2_DB_URL=jdbc:mysql://wso2carbon-db:3306/WSO2CARBON_DB
+      - WSO2_DB_URL=jdbc:oracle:thin:@//wso2carbon-db:1521/WSO2CARBON_DB
       - WSO2_DB_USERNAME=wso2carbon
       - WSO2_DB_PASSWORD=wso2carbon      
 #      - WSO2_METRICS_DB_URL=jdbc:mysql://172.17.0.2:3306/WSO2METRICS_DB
@@ -49,11 +52,41 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl/:ro
     networks:
       - loadbalancing
+  oracle:
+    image: gvenzl/oracle-xe:slim
+    ports:
+      - '1521:1521'
+#    restart: always
+    environment:
+      - ORACLE_PASSWORD=super
+      - APP_USER=wso2carbon
+      - APP_USER_PASSWORD=wso2carbon
+      - ORACLE_DATABASE=WSO2CARBON_DB
+    volumes:
+      - ./oracle/data:/opt/oracle/oradata
+      - ./oracle/initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - loadbalancing
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+#    restart: always
+    environment:
+      - POSTGRES_USER=wso2carbon
+      - POSTGRES_PASSWORD=wso2carbon
+      - POSTGRES_DB=WSO2CARBON_DB
+      - POSTGRES_HOST_AUTH_METHOD=md5
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - loadbalancing
   mysql:
     image: mysql:5.7
     ports:
       - '3306:3306'
-    restart: always
+#    restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_USER=wso2carbon
@@ -63,7 +96,7 @@ services:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/initdb.d:/docker-entrypoint-initdb.d
     networks:
-      - loadbalancing
+      - loadbalancing    
   openldap:
     image: docker.io/bitnami/openldap:latest
     ports:
