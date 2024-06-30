@@ -26,7 +26,7 @@ objectClass: inetOrgPerson
 objectClass: person
 cn: joao
 givenName: Joao
-sn: Pesao
+sn: Silva
 uid: joao
 userPassword: pass
 
@@ -52,8 +52,8 @@ dn: uid=luis,ou=users,dc=greg,dc=joy,dc=net
 objectClass: inetOrgPerson
 objectClass: person
 cn: luis
-givenName: Silva
-sn: Luis
+givenName: Luis
+sn: Silva
 uid: luis
 userPassword: pass
 
